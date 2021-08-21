@@ -1,0 +1,10 @@
+version: '3'
+services:
+  votacao-api:
+    container_name: voting-server
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: voting-server:latest
+    ports:
+      - 8080:8080
