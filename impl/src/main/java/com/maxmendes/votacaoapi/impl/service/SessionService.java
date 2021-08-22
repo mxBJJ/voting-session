@@ -2,6 +2,7 @@ package com.maxmendes.votacaoapi.impl.service;
 
 import com.maxmendes.votacaoapi.impl.error.NotFoundException;
 import com.maxmendes.votacaoapi.impl.exception.ExceptionMessageBuilder;
+import com.maxmendes.votacaoapi.impl.kafka.producer.SessionKafkaProducer;
 import com.maxmendes.votacaoapi.impl.mapper.SessionMapper;
 import com.maxmendes.votacaoapi.impl.model.SessionModel;
 import com.maxmendes.votacaoapi.impl.model.entity.SessionEntity;
@@ -22,11 +23,12 @@ public class SessionService {
     private final SessionRepository sessionRepository;
     private final ExceptionMessageBuilder messageBuilder;
     private final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
+    private final SessionKafkaProducer sessionKafkaProducer;
 
     public Mono<SessionModel> openSession(SessionModel sessionModel) {
         return sessionRepository.save(SessionMapper.mapToEntity(sessionModel))
                 .flatMap(sessionEntity -> {
-                    schedule(sessionEntity.getDuration());
+                    schedule(sessionEntity);
                     return Mono.just(sessionEntity);
                 })
                 .map(SessionMapper::mapToModel);
@@ -41,13 +43,17 @@ public class SessionService {
         return sessionRepository.save(sessionEntity);
     }
 
-
-    private void schedule(Integer duration) {
-        executor.schedule(this::publishKafka, duration, TimeUnit.SECONDS);
+    private void schedule(SessionEntity sessionEntity) {
+        executor.schedule(new Runnable() {
+            @Override
+            public void run() {
+                publishKafka(sessionEntity);
+            }
+        }, sessionEntity.getDuration(), TimeUnit.SECONDS);
     }
 
-    private void publishKafka() {
-        log.info("PUBLISHING....");
+    private void publishKafka(SessionEntity sessionEntity) {
+        sessionKafkaProducer.publish(SessionMapper.mapToKafkaEntity(sessionEntity));
     }
 
 }

@@ -1,5 +1,6 @@
 package com.maxmendes.votacaoapi.impl.mapper;
 
+import com.maxmendes.votacaoapi.impl.kafka.model.SessionKafkaModel;
 import com.maxmendes.votacaoapi.impl.model.SessionModel;
 import com.maxmendes.votacaoapi.impl.model.entity.SessionEntity;
 
@@ -21,6 +22,7 @@ public class SessionMapper {
                 .orElse(null);
     }
 
+
     public static SessionModel mapToModel(SessionEntity sessionEntity) {
         return Optional.ofNullable(sessionEntity)
                 .map(entity -> SessionModel.builder()
@@ -34,5 +36,16 @@ public class SessionMapper {
                         .build())
                 .orElse(null);
     }
+
+    public static SessionKafkaModel mapToKafkaEntity(SessionEntity sessionEntity) {
+        return Optional.ofNullable(sessionEntity)
+                .map(entity -> SessionKafkaModel.builder()
+                        .id(entity.getId())
+                        .duration(entity.getDuration())
+                        .createdAt(entity.getCreatedAt())
+                        .build())
+                .orElse(null);
+    }
+
 
 }
