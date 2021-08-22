@@ -11,6 +11,9 @@ public class ExceptionMessageBuilder {
     @Value("${error.NotFound}")
     private String notFound;
 
+    @Value("${error.invalidCpf}")
+    private String invalidCpf;
+
     @Value("${error.AlreadyVote}")
     private String alreadyVote;
 
