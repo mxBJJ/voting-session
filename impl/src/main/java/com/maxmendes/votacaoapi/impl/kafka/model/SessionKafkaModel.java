@@ -12,5 +12,7 @@ public class SessionKafkaModel {
     private String id;
     private Integer duration;
     private LocalDateTime createdAt;
+    private Integer totalYes;
+    private Integer totalNo;
 
 }

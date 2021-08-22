@@ -43,12 +43,13 @@ public class VoteService {
     }
 
     private Boolean cpfAlreadyVote(SessionEntity sessionEntity, VoteModel voteModel) {
+        if(ObjectUtils.isEmpty(sessionEntity.getCpfList())) return true;
         return !sessionEntity.getCpfList().contains(voteModel.getCpf());
     }
 
     private Mono<SessionEntity> voteToCpf(String cpf, SessionEntity sessionEntity) {
         List<String> cpfList = new ArrayList<>();
-        if (ObjectUtils.isEmpty(cpfList)) cpfList = sessionEntity.getCpfList();
+        if (!ObjectUtils.isEmpty(cpfList)) cpfList = sessionEntity.getCpfList();
         cpfList.add(cpf);
         sessionEntity.setCpfList(cpfList);
         return Mono.just(sessionEntity);

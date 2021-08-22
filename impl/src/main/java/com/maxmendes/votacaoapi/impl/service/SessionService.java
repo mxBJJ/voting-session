@@ -1,17 +1,22 @@
 package com.maxmendes.votacaoapi.impl.service;
 
+import com.maxmendes.votacaoapi.impl.enums.VoteOptions;
 import com.maxmendes.votacaoapi.impl.error.NotFoundException;
 import com.maxmendes.votacaoapi.impl.exception.ExceptionMessageBuilder;
 import com.maxmendes.votacaoapi.impl.kafka.producer.SessionKafkaProducer;
 import com.maxmendes.votacaoapi.impl.mapper.SessionMapper;
 import com.maxmendes.votacaoapi.impl.model.SessionModel;
 import com.maxmendes.votacaoapi.impl.model.entity.SessionEntity;
+import com.maxmendes.votacaoapi.impl.model.entity.VoteEntity;
 import com.maxmendes.votacaoapi.impl.repository.SessionRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -47,13 +52,30 @@ public class SessionService {
         executor.schedule(new Runnable() {
             @Override
             public void run() {
-                publishKafka(sessionEntity);
+                sessionRepository.findById(sessionEntity.getId())
+                        .flatMap(entity -> sessionResult(entity)).block();
             }
         }, sessionEntity.getDuration(), TimeUnit.SECONDS);
     }
 
-    private void publishKafka(SessionEntity sessionEntity) {
-        sessionKafkaProducer.publish(SessionMapper.mapToKafkaEntity(sessionEntity));
+    private Mono<SessionEntity> sessionResult(SessionEntity entity) {
+        var totalYes = 0;
+        var totalNo = 0;
+        List<VoteEntity> votes = new ArrayList<>();
+        if (!ObjectUtils.isEmpty(entity.getVotes())) {
+            votes = entity.getVotes();
+            totalYes = (int) votes.stream()
+                    .filter(voteEntity -> voteEntity.getVote().equals(VoteOptions.SIM)).count();
+            totalNo = (int) votes.stream()
+                    .filter(voteEntity -> voteEntity.getVote().equals(VoteOptions.NAO)).count();
+        }
+
+        publishKafka(entity, totalYes, totalNo);
+        return Mono.empty();
+    }
+
+    private void publishKafka(SessionEntity sessionEntity, Integer totalYes, Integer totalNo) {
+        sessionKafkaProducer.publish(SessionMapper.mapToKafkaEntity(sessionEntity, totalYes, totalNo));
     }
 
 }

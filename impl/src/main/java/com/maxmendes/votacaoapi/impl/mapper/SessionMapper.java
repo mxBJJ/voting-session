@@ -37,12 +37,15 @@ public class SessionMapper {
                 .orElse(null);
     }
 
-    public static SessionKafkaModel mapToKafkaEntity(SessionEntity sessionEntity) {
+    public static SessionKafkaModel mapToKafkaEntity(SessionEntity sessionEntity,
+                                                     Integer totalYes, Integer totalNo) {
         return Optional.ofNullable(sessionEntity)
                 .map(entity -> SessionKafkaModel.builder()
                         .id(entity.getId())
                         .duration(entity.getDuration())
                         .createdAt(entity.getCreatedAt())
+                        .totalYes(totalYes)
+                        .totalNo(totalNo)
                         .build())
                 .orElse(null);
     }

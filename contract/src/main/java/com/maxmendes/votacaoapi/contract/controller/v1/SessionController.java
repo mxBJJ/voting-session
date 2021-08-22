@@ -5,6 +5,7 @@ import com.maxmendes.votacaoapi.contract.facade.SessionContractFacade;
 import com.maxmendes.votacaoapi.contract.model.request.SessionRequest;
 import com.maxmendes.votacaoapi.contract.model.request.VoteRequest;
 import com.maxmendes.votacaoapi.contract.model.response.SessionResponse;
+import com.maxmendes.votacaoapi.impl.repository.SessionRepository;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import lombok.AllArgsConstructor;
