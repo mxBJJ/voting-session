@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,12 +27,20 @@ public class VoteService {
 
     public Mono<VoteModel> vote(VoteModel voteModel, String sessionId) {
         return sessionService.findSessionById(sessionId)
-                .filter(sessionEntity -> cpfAlreadyVote(sessionEntity, voteModel))
+                .filter(sessionEntity -> cpfAlreadyVote(sessionEntity, voteModel)
+                        && isSessionOpen(sessionEntity, voteModel))
                 .flatMap(sessionEntity -> voteToCpf(voteModel.getCpf(), sessionEntity))
                 .flatMap(sessionEntity -> sessionEntityFactory(sessionEntity, VoteMapper.mapToEntity(voteModel)))
                 .map(SessionMapper::mapToModel)
                 .switchIfEmpty(Mono.error(new AlreadyVoteException(messageBuilder.getAlreadyVote())))
                 .then(Mono.just(voteModel));
+    }
+
+    private Boolean isSessionOpen(SessionEntity sessionEntity, VoteModel voteModel) {
+        if (sessionEntity.getCreatedAt()
+                .plusMinutes(sessionEntity.getDuration())
+                .compareTo(LocalDateTime.now()) > 0) return true;
+        return false;
     }
 
     private Mono<SessionEntity> sessionEntityFactory(SessionEntity sessionEntity, VoteEntity voteEntity) {
@@ -43,7 +52,7 @@ public class VoteService {
     }
 
     private Boolean cpfAlreadyVote(SessionEntity sessionEntity, VoteModel voteModel) {
-        if(ObjectUtils.isEmpty(sessionEntity.getCpfList())) return true;
+        if (ObjectUtils.isEmpty(sessionEntity.getCpfList())) return true;
         return !sessionEntity.getCpfList().contains(voteModel.getCpf());
     }
 

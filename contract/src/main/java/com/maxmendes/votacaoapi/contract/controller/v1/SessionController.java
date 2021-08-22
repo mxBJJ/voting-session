@@ -1,17 +1,16 @@
 package com.maxmendes.votacaoapi.contract.controller.v1;
 
-import com.maxmendes.votacaoapi.contract.exception.GlobalExceptionHandler;
 import com.maxmendes.votacaoapi.contract.facade.SessionContractFacade;
 import com.maxmendes.votacaoapi.contract.model.request.SessionRequest;
-import com.maxmendes.votacaoapi.contract.model.request.VoteRequest;
 import com.maxmendes.votacaoapi.contract.model.response.SessionResponse;
-import com.maxmendes.votacaoapi.impl.repository.SessionRepository;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 @Slf4j
@@ -29,8 +28,8 @@ public class SessionController {
             @ApiResponse(code = 404, message = "NOT_FOUND"),
             @ApiResponse(code = 412, message = "INTERNAL_SERVER_ERROR")
     })
-    public Mono<SessionResponse> createSession(@Validated @RequestBody SessionRequest sessionRequest) {
-        return sessionContractFacade.openSession(sessionRequest);
+    public Mono<SessionResponse> createSession(@RequestParam(required = false,
+    defaultValue = "1") Integer duration) {
+        return sessionContractFacade.openSession(SessionRequest.builder().duration(duration).build());
     }
-
 }

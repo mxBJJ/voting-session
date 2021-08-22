@@ -55,7 +55,7 @@ public class SessionService {
                 sessionRepository.findById(sessionEntity.getId())
                         .flatMap(entity -> sessionResult(entity)).block();
             }
-        }, sessionEntity.getDuration(), TimeUnit.SECONDS);
+        }, sessionEntity.getDuration(), TimeUnit.MINUTES);
     }
 
     private Mono<SessionEntity> sessionResult(SessionEntity entity) {
