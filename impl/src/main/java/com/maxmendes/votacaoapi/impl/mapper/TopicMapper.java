@@ -1,9 +1,9 @@
 package com.maxmendes.votacaoapi.impl.mapper;
 
+import com.maxmendes.votacaoapi.impl.clock.TimeMachine;
 import com.maxmendes.votacaoapi.impl.model.TopicModel;
 import com.maxmendes.votacaoapi.impl.model.entity.TopicEntity;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -14,7 +14,7 @@ public class TopicMapper {
         return Optional.ofNullable(topicModel)
                 .map(model -> TopicEntity.builder()
                         .question(model.getQuestion())
-                        .createdAt(LocalDateTime.now())
+                        .createdAt(TimeMachine.now())
                         .build())
                 .orElse(null);
     }
