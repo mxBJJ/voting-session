@@ -1,6 +1,7 @@
 package com.maxmendes.votacaoapi.service;
 
 import com.maxmendes.votacaoapi.impl.clock.TimeMachine;
+import com.maxmendes.votacaoapi.impl.error.NotFoundException;
 import com.maxmendes.votacaoapi.impl.exception.ExceptionMessageBuilder;
 import com.maxmendes.votacaoapi.impl.repository.SessionRepository;
 import com.maxmendes.votacaoapi.impl.service.TopicService;
@@ -31,7 +32,7 @@ public class TopicServiceTest {
     TopicService topicService;
 
     @Test
-    void shouldReturn() {
+    void shouldInsertTopicWithSuccess() {
 
         when(sessionRepository.findById("MONGOID"))
                 .thenReturn(Mono.just(SessionStub.createEntityWithoutTopic()));
@@ -49,6 +50,25 @@ public class TopicServiceTest {
                 .insertTopicInSession(TopicStub.createModel(), "MONGOID"))
                 .expectNext(TopicStub.createModel())
                 .verifyComplete();
+    }
+
+    @Test
+    void shouldThrowNotFoundExceptionWhenInsertTopic() {
+
+        when(sessionRepository.findById("MONGOID"))
+                .thenReturn(Mono.just(SessionStub.createEntity()));
+        when(exceptionMessageBuilder.getSessionNotAvailable())
+                .thenReturn("error.sessionNotAvailable");
+
+        LocalDateTime dateTime = LocalDateTime
+                .of(2021, 5, 28, 8, 48, 0);
+
+        TimeMachine.useFixedClockAt(dateTime);
+
+        StepVerifier.create(topicService
+                .insertTopicInSession(TopicStub.createModel(), "MONGOID"))
+                .expectError(NotFoundException.class)
+                .verify();
     }
 
 }
